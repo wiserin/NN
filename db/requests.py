@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from db.models import Dataset, X, O
+import torch
 import json
 
 engine = create_engine('sqlite:///bot.db')
@@ -70,3 +71,25 @@ def make_dataset_O():
         s.add(new)
         s.commit()
     print('success')
+
+def load_dataset_X():
+    count = 0
+    train_dataset = []
+    test_dataset = []
+    for i in s.query(X.field, X.move):
+        field = deserialize_list(i[0])
+        move = deserialize_list(i[1])
+        move = 5*move[0] + move[1]
+        field_tensor = torch.tensor(field, dtype=torch.float32).unsqueeze(0)
+        move_vector = torch.zeros(25)
+        move_vector[move] = 1
+
+        if count % 5 == 0:
+            test_dataset.append([field_tensor, move_vector])
+
+        else:
+            train_dataset.append([field_tensor, move_vector])
+
+        count += 1
+
+    return train_dataset, test_dataset
