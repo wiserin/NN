@@ -11,17 +11,22 @@ class QModel(nn.Module):
         super(QModel, self).__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 2, 3, 1), 
+            nn.Conv2d(1, 16, 3, 1, 0), 
             nn.ReLU(inplace=True)
         )
 
         self.fc = nn.Sequential(
             nn.Flatten(), # Выравниваем в плоский вектор
-            nn.Linear(18, 64),
+            nn.Linear(144, 64),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
             nn.Linear(64, 128),
+            nn.Dropout(0.5),
             nn.ReLU(inplace=True),
-            nn.Linear(128, 25)
+            nn.Linear(128, 256),
+            nn.Dropout(0.5),
+            nn.ReLU(inplace=True),
+            nn.Linear(256, 25)
         )
 
     def forward(self, x):

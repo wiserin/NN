@@ -12,7 +12,7 @@ class Trainer:
         self.batch_size = batch_size
         self.gamma = gamma
         self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        self.update_frequency = 1000
+        self.update_frequency = 10
         self.steps_done = 0
 
         self.loss_fn = nn.MSELoss()
@@ -62,8 +62,10 @@ class Trainer:
         
         # Обновляем целевую модель, если достигли нужного количества шагов
         if self.steps_done % self.update_frequency == 0:
+            print("Обновлено")
             self.update_target_model()  # Синхронизируем веса целевой модели
     
     def update_target_model(self):
         """Обновляем целевую модель, копируя веса из основной модели."""
-        self.target_model.load_state_dict(self.model.state_dict()) 
+        self.target_model.load_state_dict(self.model.state_dict())
+

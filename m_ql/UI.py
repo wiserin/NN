@@ -1,6 +1,8 @@
 from tkinter import Tk, ttk
 from .game import Game
+from .model import QModel
 import tkinter as tk
+import torch
 from tkinter import messagebox
 
 class GameUI:
@@ -73,6 +75,80 @@ class GameUI:
         self.window.mainloop()
 
 
-if __name__ == "__main__":
-    app = TicTacToeUI()
+class GameWithAI(GameUI):
+    def __init__(self):
+        super().__init__()
+        self.model = QModel()  # Загружаем модель
+        self.model.load_state_dict(torch.load('q_model.pth'))
+        self.model.eval()
+        self.AI_move()
+
+    def _make_move(self, row, col):
+        """Обрабатывает ход игрока."""
+        if self.game.board[row][col] != 0:
+            return  # Ячейка уже занята
+
+        # Ход игрока
+        self.game.move(2, (row, col))
+        self.buttons[row][col]["text"] = "O"
+
+        # Проверка на победу
+        if self.game.check_win(2):
+            messagebox.showinfo("Победа!", "Игрок (O) выиграл!")
+            self._reset_game()
+            return
+
+        # Проверка на ничью
+        if self.game.is_full():
+            messagebox.showinfo("Ничья", "Игра закончилась вничью!")
+            self._reset_game()
+            return
+
+        # Запускаем ход ИИ с задержкой, чтобы обновить интерфейс
+        self.window.after(500, self.AI_move)
+
+    def AI_move(self):
+        """Ход ИИ."""
+        with torch.no_grad():
+            # Преобразуем игровое поле в тензор
+            state_tensor = torch.tensor(self.game.board, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+            q_values = self.model(state_tensor)[0]  # Q-значения для текущего состояния
+
+            # Создаем маску доступных ходов
+            available_moves = [(row, col) for row in range(5) for col in range(5) if self.game.board[row][col] == 0]
+            mask = torch.tensor([1 if self.game.board[row][col] == 0 else 0 for row in range(5) for col in range(5)],
+                                dtype=torch.bool)
+
+            # Применяем маскирование
+            masked_q_values = torch.where(mask, q_values, torch.tensor(-10000.0, dtype=q_values.dtype))
+            action = masked_q_values.argmax().item()
+            row, col = divmod(action, 5)
+
+            # Совершаем ход
+            self.game.move(1, (row, col))
+            self.buttons[row][col]["text"] = "X"
+
+            # Проверка на победу
+            if self.game.check_win(1):
+                messagebox.showinfo("Победа!", "ИИ (X) выиграл!")
+                self._reset_game()
+                return
+
+            # Проверка на ничью
+            if self.game.is_full():
+                messagebox.showinfo("Ничья", "Игра закончилась вничью!")
+                self._reset_game()
+                return
+
+    def _reset_game(self):
+        super()._reset_game()
+        self.AI_move()
+
+
+def play():
+    app = GameWithAI()
     app.run()
+
+
+
+
