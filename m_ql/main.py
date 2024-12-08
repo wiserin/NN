@@ -6,23 +6,41 @@ from .trainer import Trainer
 from .game import Game 
 
 def main():
-    # Создание объектов
-    train_frequency = 1000
-    model = QModel()
-    memory = ReplayMemory(capacity=1000)
-    agent = Agent(model)
-    trainer = Trainer(model, memory.memory, model)
+    TRAIN_FREQUENCY = 2000 #Частота обучения относительно сыгранных эпизодов
+    EPSILON_FREQUENCY = 2000 #Частота обновления e
+    TARGET_MODEL_FREQUENCY = 30 #Частота обновления целевой модели
+    TRAIN_SIZE = 300 #Количество батчей
+    EPISODES = 5000 #Общее количество игр
+    MEMORY_CAPACITY = 1000 #Максимальная загрузка памяти
+    BATCH_SIZE = 32
+    EPSILON = 1.0 
+    EPSILON_MIN = 0.1
+    EPSILON_DECAY = 0.9
+    GAMMA = 0.995
+    LR = 0.001
 
-    # Начало игры
+    # Создание объектов
+    model = QModel()
     game = Game()
+    memory = ReplayMemory(
+        MEMORY_CAPACITY
+    )
+    agent = Agent(
+        model,
+        EPSILON,
+        EPSILON_MIN,
+        EPSILON_DECAY
+    )
 
     count = 0
 
-    for episode in range(10000):
+    for episode in range(EPISODES):
         done = False
         data_ready = False
+        epsilon_ready = False
 
         while not done:
+            can_win = game.can_win_on_this_turn(1)
             state = game.board
             action = agent.select_action(state)
 
@@ -38,30 +56,52 @@ def main():
             game.move(2, (x, y))
 
             if game.check_win(1):
-                reward, done = (1, True)
+                reward, done = (20, True)
             elif game.check_win(2):
-                reward, done = (-1, True)
+                reward, done = (-10, True)
             elif game.is_full():
-                reward, done = (0.5, True)
+                reward, done = (0, True)
             else:
-                reward, done = (-0.1, False)
+                if can_win:
+                    reward, done = (-15, False)
+                else:
+                    reward, done = (-3, False)
 
             memory.push((state, action, reward, game.board, done))
             count += 1
 
-            if count % train_frequency == 0:
-                data_ready = True 
+            if count % TRAIN_FREQUENCY == 0:
+                data_ready = True
+
+            if count % EPSILON_FREQUENCY == 0:
+                epsilon_ready = True
 
         if data_ready:
-            print('Обучаюсь')
-            for _ in range(100):
-                trainer.train_step()
+
+            trainer = Trainer(
+                model,
+                memory.memory,
+                model,
+                BATCH_SIZE,
+                GAMMA,
+                LR
+            )
+            loss = 0
+            for i in range(TRAIN_SIZE):
+                loss =+ trainer.train_step()
+                if i % TARGET_MODEL_FREQUENCY == 0:
+                    trainer.update_target_model()
+            print(f"Loss: {loss / TRAIN_SIZE}")
+            model = trainer.model
+            agent.model = model
+            data_ready = False
+
+        if epsilon_ready:
             # Уменьшение epsilon
             agent.update_epsilon()
-            data_ready = False
 
         # Перезапуск игры
         game.new_board()
-        print('Я играю')
 
     torch.save(model.state_dict(), "q_model.pth")
+    print('Ok')

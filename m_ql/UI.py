@@ -112,6 +112,7 @@ class GameWithAI(GameUI):
         with torch.no_grad():
             # Преобразуем игровое поле в тензор
             state_tensor = torch.tensor(self.game.board, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+            state_tensor = state_tensor / 2.0
             q_values = self.model(state_tensor)[0]  # Q-значения для текущего состояния
 
             # Создаем маску доступных ходов
@@ -120,7 +121,7 @@ class GameWithAI(GameUI):
                                 dtype=torch.bool)
 
             # Применяем маскирование
-            masked_q_values = torch.where(mask, q_values, torch.tensor(-10000.0, dtype=q_values.dtype))
+            masked_q_values = torch.where(mask, q_values, torch.tensor(float('-inf'), dtype=q_values.dtype))
             action = masked_q_values.argmax().item()
             row, col = divmod(action, 5)
 
