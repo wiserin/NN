@@ -16,19 +16,33 @@ class QModel(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(16, 32, 3, padding=1),
             nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 64, 3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 256, 3, padding=1),
+            nn.BatchNorm2d(256),
             nn.ReLU(inplace=True)
         )
 
         self.fc = nn.Sequential(
             nn.Flatten(), # Выравниваем в плоский вектор
-            nn.Linear(800, 64),
+            nn.Linear(6400, 64),
             nn.ReLU(inplace=True),
+            nn.Dropout(0,3),
             nn.Linear(64, 128),
             nn.ReLU(inplace=True),
+            nn.Dropout(0,3),
             nn.Linear(128, 256),
             nn.ReLU(inplace=True),
-            nn.Linear(256, 25)
-
+            nn.Dropout(0,3),
+            nn.Linear(256, 512),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0,3),
+            nn.Linear(512, 25)
         )
 
     def forward(self, x):
