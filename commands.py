@@ -14,7 +14,7 @@ def det(command):
         app = GameUI()
         app.run()
     elif command == "train DQL":
-        main()
+        main(1, 2)
     elif command == "play":
         play()
 

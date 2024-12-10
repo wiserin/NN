@@ -78,8 +78,9 @@ class GameUI:
 class GameWithAI(GameUI):
     def __init__(self):
         super().__init__()
-        self.model = QModel()  # Загружаем модель
-        self.model.load_state_dict(torch.load('q_model.pth'))
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.model = QModel().to(self.device)  # Загружаем модель на CUDA/CPU
+        self.model.load_state_dict(torch.load('q_model_1.pth', map_location=self.device))
         self.model.eval()
         self.AI_move()
 
@@ -111,9 +112,9 @@ class GameWithAI(GameUI):
         """Ход ИИ."""
         with torch.no_grad():
             # Преобразуем игровое поле в тензор
-            state_tensor = torch.tensor(self.game.board, dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+            state_tensor = torch.tensor(self.game.board, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(self.device)
             state_tensor = state_tensor / 2.0
-            q_values = self.model(state_tensor)[0]  # Q-значения для текущего состояния
+            q_values = self.model(state_tensor)[0].cpu()  # Q-значения для текущего состояния
 
             # Создаем маску доступных ходов
             available_moves = [(row, col) for row in range(5) for col in range(5) if self.game.board[row][col] == 0]
@@ -149,7 +150,6 @@ class GameWithAI(GameUI):
 def play():
     app = GameWithAI()
     app.run()
-
 
 
 
