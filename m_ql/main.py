@@ -11,13 +11,13 @@ def main():
     EPSILON_FREQUENCY = 500 #Частота обновления e
     TARGET_MODEL_FREQUENCY = 30 #Частота обновления целевой модели
     TRAIN_SIZE = 300 #Количество батчей
-    EPISODES = 3000 #Общее количество игр
-    MEMORY_CAPACITY = 1000 #Максимальная загрузка памяти
+    EPISODES = 5000 #Общее количество игр
+    MEMORY_CAPACITY = 2500 #Максимальная загрузка памяти
     BATCH_SIZE = 32
     EPSILON = 1.0 
     EPSILON_MIN = 0.1
     EPSILON_DECAY = 0.9
-    GAMMA = 0.995
+    GAMMA = 0.9
     LR = 0.001
 
     # Создание объектов

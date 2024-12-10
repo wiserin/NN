@@ -25,7 +25,7 @@ class QModel(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(128, 256, 3, padding=1),
             nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
         self.fc = nn.Sequential(
@@ -42,7 +42,7 @@ class QModel(nn.Module):
             nn.Linear(256, 512),
             nn.ReLU(inplace=True),
             nn.Dropout(0,3),
-            nn.Linear(512, 25)
+            nn.Linear(512, 25),
         )
 
     def forward(self, x):
