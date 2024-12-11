@@ -18,7 +18,7 @@ def main(player, enemy):
     EPSILON_FREQUENCY = 500  # Частота обновления e отнолительно эпизодов
     TARGET_MODEL_FREQUENCY = 50  # Частота обновления целевой модели
     TRAIN_SIZE = 600  # Количество батчей
-    EPISODES = 8000  # Общее количество игр
+    EPISODES = 10000  # Общее количество игр
     MEMORY_CAPACITY = 12000  # Максимальная загрузка памяти
     BATCH_SIZE = 32
     EPSILON = 1.0

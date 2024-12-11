@@ -80,7 +80,7 @@ class GameWithAI_X(GameUI):
         super().__init__()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = QModel().to(self.device)  # Загружаем модель на CUDA/CPU
-        self.model.load_state_dict(torch.load('q_model_1.pth', map_location=self.device))
+        self.model.load_state_dict(torch.load('q_model_upd_x.pth', map_location=self.device))
         self.model.eval()
         self.AI_move()
 
@@ -151,7 +151,7 @@ class GameWithAI_O(GameUI):
         super().__init__()
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = QModel().to(self.device)  # Загружаем модель на CUDA/CPU
-        self.model.load_state_dict(torch.load('q_model_2.pth', map_location=self.device))
+        self.model.load_state_dict(torch.load('q_model_upd_o.pth', map_location=self.device))
         self.model.eval()
 
     def _make_move(self, row, col):
