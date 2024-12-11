@@ -12,38 +12,34 @@ class QModel(nn.Module):
         super(QModel, self).__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 16, 3, padding=1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(16, 32, 3, padding=1),
+            nn.Conv2d(1, 32, 3, padding=1),
             nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Conv2d(32, 64, 3, padding=1),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Conv2d(64, 128, 3, padding=1),
             nn.BatchNorm2d(128),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, 256, 3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(inplace=True),
-            nn.Dropout2d(0.2),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
         )
 
         self.fc = nn.Sequential(
-            nn.Flatten(), # Выравниваем в плоский вектор
-            nn.Linear(6400, 64),
-            nn.ReLU(inplace=True),
+            nn.Flatten(),
+            nn.Linear(3200, 64),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Dropout(0,2),
             nn.Linear(64, 128),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Dropout(0,2),
             nn.Linear(128, 256),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Dropout(0,2),
             nn.Linear(256, 512),
-            nn.ReLU(inplace=True),
-            nn.Linear(512, 25),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
+            nn.Dropout(0.2),
+            nn.Linear(512, 128),
+            nn.LeakyReLU(negative_slope=0.01, inplace=True),
+            nn.Linear(128, 25),
         )
 
     def forward(self, x):

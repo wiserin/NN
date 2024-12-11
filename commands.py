@@ -1,7 +1,8 @@
 from db.requests import make_dataset_O, make_dataset_X
 from m_bkp.model import NN_bkp
-from m_ql.UI import GameUI, play
+from m_ql.UI import GameUI, play_X, play_O
 from m_ql.main import main
+from m_ql.model_VS_model import main as main_1
 
 def det(command):
     if command == "make dataset O":
@@ -15,6 +16,10 @@ def det(command):
         app.run()
     elif command == "train DQL":
         main(1, 2)
-    elif command == "play":
-        play()
+    elif command == "play X":
+        play_X()
+    elif command == "play O":
+        play_O()
+    elif command == "train main":
+        main_1()
 

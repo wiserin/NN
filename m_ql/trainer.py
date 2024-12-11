@@ -73,7 +73,7 @@ class Trainer:
         loss.backward()
         self.optimizer.step()
         
-        return loss
+        # return loss
 
     def update_target_model(self):
         """Обновляем целевую модель, копируя веса из основной модели."""
