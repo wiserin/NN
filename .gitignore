@@ -1,3 +1,7 @@
 /venv
 /.vscode
 pyt.py
+/__pycache__
+/db/__pycache__
+/m_bkp/__pycache__
+/m_ql/__pycache__

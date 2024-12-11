@@ -10,19 +10,19 @@ def main():
     EPSILON_FREQUENCY = 300  # Частота обновления e отнолительно игр
     TARGET_MODEL_FREQUENCY = 50  # Частота обновления целевой модели
     TRAIN_SIZE = 450  # Количество батчей
-    EPISODES = 100000  # Общее количество игр
+    EPISODES = 150000  # Общее количество игр
     MEMORY_CAPACITY = 12000  # Максимальная загрузка памяти
     BATCH_SIZE = 32
     EPSILON = 1.0
     EPSILON_MIN = 0.1
-    EPSILON_DECAY = 0.9
-    GAMMA = 0.93
+    EPSILON_DECAY = 0.95
+    GAMMA = 0.9
     LR = 0.0000001
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model_x = QModel().to(device)
-    model_x.load_state_dict(torch.load('q_model_1.pth'))
+    model_x.load_state_dict(torch.load('q_model_upd_x.pth'))
 
     model_o = QModel().to(device)
     model_o.load_state_dict(torch.load('q_model_2.pth'))
@@ -116,7 +116,7 @@ def play_game(model_x, model_o, game, device, memory_x, memory_o, epsilon):
             flat_state = [cell for row in state for cell in row]
 
             # Выбор действия
-            if random.random() < epsilon if current_player == 2 else epsilon :
+            if random.random() < epsilon :
                 available_moves = [i for i, cell in enumerate(flat_state) if cell == 0]
                 action = random.choice(available_moves) if available_moves else 0
             else:
@@ -135,13 +135,13 @@ def play_game(model_x, model_o, game, device, memory_x, memory_o, epsilon):
 
             # Проверка результата игры
             if game.check_win(current_player):
-                memory.push((state, action, 50 if current_player == 1 else reward_winner, game.board, True))
-                enemy_memory.update_reward(-50 if current_player == 2 else reward_loser, True)
+                memory.push((state, action, reward_winner, game.board, True))
+                enemy_memory.update_reward(reward_loser, True)
                 return current_player
 
             elif game.is_full():
-                memory.push((state, action, 5 if current_player == 1 else  reward_draw, game.board, True))
-                enemy_memory.update_reward(5 if current_player == 2 else reward_draw, True)
+                memory.push((state, action, reward_draw, game.board, True))
+                enemy_memory.update_reward(reward_draw, True)
                 return 0
 
             else:
