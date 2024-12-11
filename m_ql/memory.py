@@ -16,6 +16,8 @@ class ReplayMemory:
         return random.sample(self.memory, batch_size)
 
     def update_reward(self, reward, done):
+        """Обновление награды"""
+
         # Достаём последний ход из памяти
         last_transition = self.memory[-1]  # Последний добавленный элемент (state, action, reward, next_state, done)
 

@@ -31,21 +31,12 @@ class Agent:
             action = masked_q_values.argmax().item()
             return action
 
+
     def random_move(self, state):
         flat_state = [cell for row in state for cell in row]
         available_moves = [i for i, cell in enumerate(flat_state) if cell == 0]
         return random.choice(available_moves) if available_moves else 0
 
-    # def play(self, state):
-    #     flat_state = [cell for row in state for cell in row]
-    #     mask = torch.tensor(flat_state, dtype=torch.bool).to(self.device) == 0 
-    #     with torch.no_grad():
-    #         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0).unsqueeze(0).to(self.device)
-    #         state_tensor = state_tensor / 2.0
-    #         q_values = self.model(state_tensor)
-    #         masked_q_values = torch.where(mask, q_values, torch.tensor(float('-inf'), dtype=q_values.dtype, device=self.device))
-    #         action = masked_q_values.argmax().item()
-    #         return action
 
     def update_epsilon(self):
         """Уменьшает значение epsilon для e-жадной стратегии."""

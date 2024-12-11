@@ -14,18 +14,18 @@ def main(player, enemy):
     2 - Нолик
     """
 
-    TRAIN_FREQUENCY = 5000  # Частота обучения относительно сыгранных эпизодов
+    TRAIN_FREQUENCY = 4000  # Частота обучения относительно сыгранных эпизодов
     EPSILON_FREQUENCY = 500  # Частота обновления e отнолительно эпизодов
     TARGET_MODEL_FREQUENCY = 50  # Частота обновления целевой модели
-    TRAIN_SIZE = 400  # Количество батчей
-    EPISODES = 50000  # Общее количество игр
-    MEMORY_CAPACITY = 9000  # Максимальная загрузка памяти
+    TRAIN_SIZE = 600  # Количество батчей
+    EPISODES = 8000  # Общее количество игр
+    MEMORY_CAPACITY = 12000  # Максимальная загрузка памяти
     BATCH_SIZE = 32
     EPSILON = 1.0
     EPSILON_MIN = 0.1
-    EPSILON_DECAY = 0.9
-    GAMMA = 0.99
-    LR = 0.0005
+    EPSILON_DECAY = 0.95
+    GAMMA = 0.88
+    LR = 0.000001
 
     # Определяем устройство (CPU или GPU)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -81,13 +81,13 @@ def main(player, enemy):
                 game.move(player, (x, y))  # Ход О
 
             if game.check_win(player):
-                reward, done = (70, True)
+                reward, done= (70, True)
                 winning += 1
             elif game.check_win(enemy):
-                reward, done = (-70, True)
+                reward, done= (-70, True)
                 loss += 1
             elif game.is_full():
-                reward, done = (0, True)
+                reward, done= (5, True)
                 draw += 1
             else:
                 if can_win:
@@ -112,14 +112,11 @@ def main(player, enemy):
         if data_ready:
             trainer = Trainer(
                 model,
-                memory.memory,
-                model,
-                BATCH_SIZE,
                 GAMMA,
                 LR
             )
             for i in range(TRAIN_SIZE,):
-                trainer.train_step()
+                trainer.train_step(memory.sample(BATCH_SIZE))
                 if i % TARGET_MODEL_FREQUENCY == 0:
                     trainer.update_target_model()
             

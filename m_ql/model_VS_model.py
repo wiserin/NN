@@ -17,7 +17,7 @@ def main():
     EPSILON_MIN = 0.1
     EPSILON_DECAY = 0.999
     GAMMA = 0.99
-    LR = 0.001
+    LR = 0.000001
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -62,25 +62,19 @@ def main():
         if episode % TRAIN_FREQUENCY == 0:
             trainer_x = Trainer(
                 model_x,
-                memory_x.memory,
-                model_x,
-                BATCH_SIZE,
                 GAMMA,
                 LR
             )
 
             trainer_o = Trainer(
                 model_o,
-                memory_o.memory,
-                model_o,
-                BATCH_SIZE,
                 GAMMA,
                 LR
             )
 
             for i in range(TRAIN_SIZE):
-                trainer_x.train_step()
-                trainer_o.train_step()
+                trainer_x.train_step(memory_x.sample(BATCH_SIZE))
+                trainer_o.train_step(memory_o.sample(BATCH_SIZE))
 
                 if i % TARGET_MODEL_FREQUENCY == 0:
                     trainer_x.update_target_model()

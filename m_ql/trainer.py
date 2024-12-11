@@ -5,12 +5,10 @@ import torch
 import random
 
 class Trainer:
-    def __init__(self, model, memory, target_model, batch_size, gamma, lr):
+    def __init__(self, model, gamma, lr):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model.to(self.device)  # Перенос модели на устройство
-        self.memory = memory
-        self.target_model = target_model.to(self.device)  # Перенос целевой модели на устройство
-        self.batch_size = batch_size
+        self.target_model = model.to(self.device)  # Перенос целевой модели на устройство
         self.gamma = gamma
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=1e-4)
         self.loss_fn = nn.MSELoss()
@@ -19,11 +17,8 @@ class Trainer:
         self.target_model.load_state_dict(self.model.state_dict())
         self.target_model.eval()
 
-    def train_step(self): 
+    def train_step(self, batch): 
         """Один шаг обучения."""
-        # Выбор мини-батча
-        batch_size = min(self.batch_size, len(self.memory))
-        batch = random.sample(list(self.memory), batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
 
         # Преобразование данных в тензоры
