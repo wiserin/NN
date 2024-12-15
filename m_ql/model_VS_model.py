@@ -7,25 +7,31 @@ import random
 
 def main():
     TRAIN_FREQUENCY = 1000  # Частота обучения относительно сыгранных игр
-    EPSILON_FREQUENCY = 300  # Частота обновления e отнолительно игр
+    EPSILON_FREQUENCY = 1000  # Частота обновления e отнолительно игр
     TARGET_MODEL_FREQUENCY = 50  # Частота обновления целевой модели
     TRAIN_SIZE = 450  # Количество батчей
-    EPISODES = 150000  # Общее количество игр
-    MEMORY_CAPACITY = 12000  # Максимальная загрузка памяти
+    EPISODES = 100000  # Общее количество игр
+    MEMORY_CAPACITY = 15000  # Максимальная загрузка памяти
+    MODELS = 10 #Количество моделей
     BATCH_SIZE = 32
     EPSILON = 1.0
     EPSILON_MIN = 0.1
     EPSILON_DECAY = 0.95
-    GAMMA = 0.9
+    GAMMA = 0.85
     LR = 0.0000001
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    models_x = []
+    models_o = []
 
-    model_x = QModel().to(device)
-    model_x.load_state_dict(torch.load('q_model_upd_x.pth'))
+    for model in range(MODELS):
+        model_x = QModel().to(device)
+        model_x.load_state_dict(torch.load(f'D:/Programs/Tima/NN/models/second/x/q_model_1_{model}.pth'))
+        models_x.append(model_x)
 
-    model_o = QModel().to(device)
-    model_o.load_state_dict(torch.load('q_model_2.pth'))
+        model_o = QModel().to(device)
+        model_o.load_state_dict(torch.load(f'D:/Programs/Tima/NN/models/second/o/q_model_2_{model}.pth'))
+        models_o.append(model_o)
 
     memory_x = ReplayMemory(MEMORY_CAPACITY)
     memory_o = ReplayMemory(MEMORY_CAPACITY)
@@ -41,8 +47,8 @@ def main():
 
     for episode in range(EPISODES):
         winner = play_game(
-            model_x,
-            model_o,
+            random.choice(models_x),
+            random.choice(models_o),
             game,
             device,
             memory_x,
@@ -60,28 +66,29 @@ def main():
         stat_count += 1
 
         if episode % TRAIN_FREQUENCY == 0:
-            trainer_x = Trainer(
-                model_x,
-                GAMMA,
-                LR
-            )
+            for t in range(MODELS):
+                trainer_x = Trainer(
+                    models_x[t],
+                    GAMMA,
+                    LR
+                )
 
-            trainer_o = Trainer(
-                model_o,
-                GAMMA,
-                LR
-            )
+                trainer_o = Trainer(
+                    models_o[t],
+                    GAMMA,
+                    LR
+                )
 
-            for i in range(TRAIN_SIZE):
-                trainer_x.train_step(memory_x.sample(BATCH_SIZE))
-                trainer_o.train_step(memory_o.sample(BATCH_SIZE))
+                for i in range(TRAIN_SIZE):
+                    trainer_x.train_step(memory_x.sample(BATCH_SIZE))
+                    trainer_o.train_step(memory_o.sample(BATCH_SIZE))
 
-                if i % TARGET_MODEL_FREQUENCY == 0:
-                    trainer_x.update_target_model()
-                    trainer_o.update_target_model()
+                    if i % TARGET_MODEL_FREQUENCY == 0:
+                        trainer_x.update_target_model()
+                        trainer_o.update_target_model()
 
-            model_x = trainer_x.model
-            model_o = trainer_o.model
+                models_x[t] = trainer_x.model
+                models_o[t] = trainer_o.model
 
             epoch += 1
             print(f'Epoch: {epoch}\nX won: {win_x/stat_count*100:.2f}%\nO won: {win_o/stat_count*100:.2f}%\nDraw: {draw/stat_count*100:.2f}%')
@@ -91,9 +98,16 @@ def main():
         if episode % EPSILON_FREQUENCY == 0:
             epsilon = max(EPSILON_MIN, epsilon * EPSILON_DECAY)
 
+    count = 0
+    for model in models_x:
+        torch.save(model.state_dict(), f"D:/Programs/Tima/NN/models/second/x/q_model_1_{count}.pth")
+        count += 1
+        
+    count = 0
+    for model in models_o:
+        torch.save(model.state_dict(), f"D:/Programs/Tima/NN/models/second/o/q_model_2_{count}.pth")
+        count += 1
 
-    torch.save(model_x.state_dict(), f"q_model_upd_x.pth")
-    torch.save(model_o.state_dict(), f"q_model_upd_o.pth")
     print('Training completed')
 
 
@@ -103,10 +117,10 @@ def play_game(model_x, model_o, game, device, memory_x, memory_o, epsilon):
     state = game.board
 
     while not done:
-        reward_winner = 50
-        reward_loser = -50
-        reward_draw = 5
-        reward_step = -4
+        reward_winner = 70
+        reward_loser = -70
+        reward_draw = 15
+        reward_step = 0
 
         for agent, memory, enemy_memory, current_player in [(model_x, memory_x, memory_o, 1), (model_o, memory_o, memory_x, 2)]:
             if done:
@@ -145,8 +159,11 @@ def play_game(model_x, model_o, game, device, memory_x, memory_o, epsilon):
                 return 0
 
             else:
-                # Сохранение опыта
-                memory.push((state, action, reward_step, game.board, False))
+                if game.can_win_on_this_turn(current_player):
+                    memory.push((state, action, -20, game.board, False))
+                else:
+                    # Сохранение опыта
+                    memory.push((state, action, reward_step, game.board, False))
 
             # Обновление состояния
             state = game.board

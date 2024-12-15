@@ -15,17 +15,17 @@ class QModel(nn.Module):
             nn.Conv2d(1, 32, 3, padding=1),
             nn.BatchNorm2d(32),
             nn.LeakyReLU(negative_slope=0.01, inplace=True),
-            nn.Conv2d(32, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.LeakyReLU(negative_slope=0.01, inplace=True),
-            nn.Conv2d(64, 128, 3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(negative_slope=0.01, inplace=True),
+            # nn.Conv2d(32, 64, 3, padding=1),
+            # nn.BatchNorm2d(64),
+            # nn.LeakyReLU(negative_slope=0.01, inplace=True),
+            # nn.Conv2d(64, 128, 3, padding=1),
+            # nn.BatchNorm2d(128),
+            # nn.LeakyReLU(negative_slope=0.01, inplace=True),
         )
 
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(3200, 64),
+            nn.Linear(800, 64),
             nn.LeakyReLU(negative_slope=0.01, inplace=True),
             nn.Dropout(0,2),
             nn.Linear(64, 128),
@@ -36,10 +36,10 @@ class QModel(nn.Module):
             nn.Dropout(0,2),
             nn.Linear(256, 512),
             nn.LeakyReLU(negative_slope=0.01, inplace=True),
-            nn.Dropout(0.2),
-            nn.Linear(512, 128),
-            nn.LeakyReLU(negative_slope=0.01, inplace=True),
-            nn.Linear(128, 25),
+            # nn.Dropout(0.2),
+            # nn.Linear(512, 128),
+            # nn.LeakyReLU(negative_slope=0.01, inplace=True),
+            nn.Linear(512, 25),
         )
 
     def forward(self, x):
@@ -48,5 +48,7 @@ class QModel(nn.Module):
         return x
 
 if __name__ == "__main__":
-    model = QModel()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = QModel().to(device)
     summary(model, input_size=(1, 5, 5))
+    print(torch.cuda.is_available())
